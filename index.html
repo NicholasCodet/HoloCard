@@ -7,179 +7,203 @@
     <title>Document</title>
 
     <style>
-      /* Center the card in the middle of the screen */
+      :root {
+        --value: 1;
+        --pointer-x: 50%;
+        --pointer-y: 50%;
+        --pointer-from-center: 0;
+        --background-x: 50%;
+        --background-y: 50%;
+
+        --ratio: 0.718;
+        --border-radius: 4.5% / 3.5%;
+        --clip-border: inset(2.8% 4% round 2.55% / 1.5%);
+        --angle: -22deg;
+        --image: url("card.png");
+        --mask: url("mask.webp");
+        --opacity: 0;
+      }
+
       body {
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
-        background-color: #f0f0f0;
+        background-color: hsla(220, 7%, 24%, 1);
         margin: 0;
-        perspective: 1000px; /* Adds depth for 3D transforms */
+        perspective: 1000px;
       }
 
-      /* Main card container */
       .card {
+        aspect-ratio: var(--ratio);
         width: 250px;
-        height: 350px;
         position: relative;
-        transform-style: preserve-3d; /* Allows 3D transformations */
-        transition: transform 0.1s; /* Smooth transition for tilting */
+        transform-style: preserve-3d;
+        transition: transform 0.1s;
       }
 
-      /* Style for front the card */
-      .card-face {
+      .masked {
+        width: 100%;
+        height: 100%;
+        mask-image: var(--mask);
+        -webkit-mask-image: var(--mask);
+        mask-size: cover;
+        -webkit-mask-size: cover;
+        mask-position: center;
+        -webkit-mask-position: center;
+      }
+
+      .card__front {
         position: absolute;
         width: 100%;
         height: 100%;
-        border-radius: 4.5% / 3.5%;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        border-radius: var(--border-radius);
+        box-shadow: 0 0 10px hsla(0, 0%, 0%, 0.3);
         overflow: hidden;
       }
 
-      /* Image */
-      .card-image {
+      .card__image {
         width: 100%;
         height: 100%;
-        background-image: url("card.png");
+        background-image: var(--image);
         background-size: cover;
       }
 
-      .holo-front {
+      .card__shine {
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
+        clip-path: var(--clip-border);
+        background-image: repeating-linear-gradient(
+          var(--angle),
+          hsla(283, 49%, 60%, 0.75) 5%,
+          hsla(2, 74%, 59%, 0.75) 10%,
+          hsla(53, 67%, 53%, 0.75) 15%,
+          hsla(93, 56%, 52%, 0.75) 20%,
+          hsla(176, 38%, 50%, 0.75) 25%,
+          hsla(228, 100%, 77%, 0.75) 30%,
+          hsla(283, 49%, 61%, 0.75) 35%
+        );
+        background-size: 400% 300%;
+        background-position: 0% var(--background-y),
+          var(--background-x) var(--background-y);
+        background-blend-mode: color-dodge;
+        filter: brightness(calc((var(--pointer-from-center) * 0.4) + 0.5))
+          contrast(2.3) saturate(1);
         mix-blend-mode: color-dodge;
-        background-image: url("pattern.webp"),
-          repeating-linear-gradient(
-            0deg,
-            rgb(255, 119, 115) 5%,
-            rgba(255, 237, 95, 1) 10%,
-            rgba(168, 255, 95, 1) 15%,
-            rgba(131, 255, 247, 1) 20%,
-            rgba(120, 148, 255, 1) 25%,
-            rgb(216, 117, 255) 30%,
-            rgb(255, 119, 115) 35%
-          ),
-          repeating-linear-gradient(
-            133deg,
-            #0e152e 0%,
-            hsl(180, 10%, 60%) 3.8%,
-            hsl(180, 29%, 66%) 4.5%,
-            hsl(180, 10%, 60%) 5.2%,
-            #0e152e 10%,
-            #0e152e 12%
-          ),
-          radial-gradient(
-            farthest-corner circle at 50% 50%,
-            rgba(0, 0, 0, 0.1) 12%,
-            rgba(0, 0, 0, 0.15) 20%,
-            rgba(0, 0, 0, 0.25) 120%
-          );
-        background-blend-mode: exclusion, hue, hard-light, exclusion;
-        background-size: 50%, 200% 700%, 300%, 200%;
-        background-position: center, 0% 50%, 50% 50%, 50% 50%;
-        filter: brightness(calc((0 * 0.3) + 0.5))
-          /*mouseposition where center is 0 border are 1 X 0,3 */ contrast(2)
-          saturate(1.5);
+        overflow: hidden;
+        opacity: var(--opacity);
       }
 
-      .holo-back {
+      .card__shine:after {
         content: "";
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        mix-blend-mode: color-burn;
-        background-image: url("pattern.webp"),
-          repeating-linear-gradient(
-            0deg,
-            rgb(255, 119, 115) 5%,
-            rgba(255, 237, 95, 1) 10%,
-            rgba(168, 255, 95, 1) 15%,
-            rgba(131, 255, 247, 1) 20%,
-            rgba(120, 148, 255, 1) 25%,
-            rgb(216, 117, 255) 30%,
-            rgb(255, 119, 115) 35%
-          ),
-          repeating-linear-gradient(
-            133deg,
-            #0e152e 0%,
-            hsl(180, 10%, 60%) 3.8%,
-            hsl(180, 29%, 66%) 4.5%,
-            hsl(180, 10%, 60%) 5.2%,
-            #0e152e 10%,
-            #0e152e 12%
-          ),
-          radial-gradient(
-            farthest-corner circle at 50% 50%,
-            rgba(0, 0, 0, 0.1) 12%,
-            rgba(0, 0, 0, 0.15) 20%,
-            rgba(0, 0, 0, 0.25) 120%
-          );
-        background-blend-mode: exclusion, hue, hard-light, exclusion;
-        background-size: 50%, 200% 400%, 195%, 200%;
-        background-position: center, 0% 50%, calc(50% * -1) calc(50% * -1),
-          50% 50%;
-        filter: brightness(calc((0 * 0.5) + 0.8))
-          /*mouseposition where center is 0 border are 1 X 0,3 */ contrast(1.6)
-          saturate(1.4);
+        background-image: radial-gradient(
+          farthest-corner ellipse at calc((var(--pointer-x) * 0.5) + 25%)
+            calc((var(--pointer-y) * 0.5) + 25%),
+          hsla(0, 0%, 100%, 1) 5%,
+          hsla(300, 100%, 11%, 0.6) 40%,
+          hsla(0, 0%, 22%, 1) 120%
+        );
+        background-size: 400% 500%;
+        background-position: center center;
+        filter: brightness(calc((var(--pointer-from-center) * 0.2) + 0.4))
+          contrast(0.85) saturate(1.1);
+        mix-blend-mode: hard-light;
+      }
+
+      .card__glare {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        clip-path: var(--clip-border);
+        background-image: radial-gradient(
+          farthest-corner circle at var(--pointer-x) var(--pointer-y),
+          hsla(0, 0%, 100%, 1) 10%,
+          hsla(0, 0%, 100%, 0.6) 35%,
+          hsla(180, 11%, 35%, 1) 60%
+        );
+        mix-blend-mode: soft-light;
+        overflow: hidden;
+        opacity: var(--opacity);
       }
     </style>
   </head>
   <body>
     <div class="card">
-      <div class="card-face">
-        <div class="card-image"></div>
-        <div class="holo-front"></div>
-        <div class="holo-back"></div>
+      <div class="card__front">
+        <div class="card__image"></div>
+        <div class="card__shine masked"></div>
+        <div class="card__glare"></div>
       </div>
     </div>
 
     <script>
-      // Get references to the main elements
       const card = document.querySelector(".card");
-      const shine = document.querySelector(".holo-front");
-      const coach = document.querySelector(".holo-back");
 
-      // Add mousemove event for tilt and holographic effects
       card.addEventListener("mousemove", (e) => {
         const rect = card.getBoundingClientRect();
+
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        // Calculate rotation
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
 
-        // Calculate tilt based on mouse position
-        const rotateX = (y - centerY) / 10;
-        const rotateY = (centerX - x) / 10;
+        const tiltX = (y - centerY) / 10;
+        const tiltY = (centerX - x) / 10;
 
-        // Apply tilt effect
-        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-
-        // Holographic effect based on mouse position
         const percentX = (x / rect.width) * 100;
         const percentY = (y / rect.height) * 100;
-        const percentRX = percentX * -1;
-        const percentRY = percentY * -1;
 
-        shine.style.backgroundPosition = `center, 0% ${percentY}%, ${percentX}% ${percentY}%, ${percentX}% ${percentY}%`;
-        coach.style.backgroundPosition = `center, 0% ${percentY}%, ${percentRX}% ${percentRY}%, ${percentX}% ${percentY}%`;
+        const clampedPercentX = Math.max(0, Math.min(100, percentX));
+        const clampedPercentY = Math.max(0, Math.min(100, percentY));
 
-        shine.style.opacity = 0.75;
-        coach.style.opacity = 0.75;
+        const offsetX = Math.abs(x - centerX);
+        const offsetY = Math.abs(y - centerY);
+        const normalizedX = offsetX / centerX;
+        const normalizedY = offsetY / centerY;
+        const normalizedDistance = Math.max(normalizedX, normalizedY);
+
+        const backgroundX = 37 + (percentX / 100) * (63 - 37);
+        const backgroundY = 33 + (percentY / 100) * (67 - 33);
+
+        card.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+
+        document.documentElement.style.setProperty(
+          "--pointer-x",
+          `${clampedPercentX}%`
+        );
+        document.documentElement.style.setProperty(
+          "--pointer-y",
+          `${clampedPercentY}%`
+        );
+        document.documentElement.style.setProperty(
+          "--pointer-from-center",
+          normalizedDistance
+        );
+        document.documentElement.style.setProperty(
+          "--background-x",
+          `${backgroundX}%`
+        );
+        document.documentElement.style.setProperty(
+          "--background-y",
+          `${backgroundY}%`
+        );
+        document.documentElement.style.setProperty("--opacity", "1");
       });
 
-      // Reset effects when mouse leaves the card
       card.addEventListener("mouseleave", () => {
         card.style.transform = "rotateX(0) rotateY(0)";
-        shine.style.opacity = 0;
-        coach.style.opacity = 0;
+        document.documentElement.style.setProperty("--opacity", "0");
       });
     </script>
   </body>
