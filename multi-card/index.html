@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <style>
+      :root {
+        --value: 100;
+
+        --pointer-x: 50%;
+        --pointer-y: 50%;
+        --pointer-from-center: 0;
+        --pointer-from-left: 0.5;
+        --pointer-from-top: 0.5;
+        --rotate-x: 0deg;
+        --rotate-y: 0deg;
+        --background-x: 50%;
+        --background-y: 50%;
+
+        --scale: 1;
+        --scale-zoomed: 1.75;
+        --opacity: 0;
+
+        --card-ratio: 1.39;
+        --card-width: 300px;
+        --card-height: calc(var(--card-width) * var(--card-ratio));
+        --card-border-radius: 4.5% / 3.5%;
+        --card-color: hsla(0, 0%, 100%, 1);
+        --card-glow: var(--card-color);
+        --card-image: ;
+        --card-mask: ;
+        --card-foil: ;
+
+        --texture-cosmos-top: url("images/cosmos-bot.png");
+        --texture-cosmos-mid: url("images/cosmos-mid.png");
+        --texture-cosmos-bop: url("images/cosmos-top.png");
+        --texture-glitter: url("images/glitter.png");
+
+        --transition-tilt: 0.1s ease-out;
+        --transition-scale: 0.3s ease-in-out;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        background-image: url("images/pattern.png");
+        background-repeat: repeat;
+        background-size: 10px 10px;
+        background-position: center;
+      }
+
+      .overlay {
+        display: none;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        position: fixed;
+        background-color: hsla(0, 0%, 0%, 0.5);
+        z-index: 999;
+      }
+
+      .cards-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+        max-width: 1200px;
+        min-height: min-content;
+        margin: 0 auto;
+        padding: 2rem;
+        box-sizing: border-box;
+      }
+
+      .card-container {
+        width: var(--card-width);
+        height: var(--card-height);
+        position: relative;
+        perspective: 1000px;
+        transform-origin: center;
+        transition: transform var(--transition-scale);
+        z-index: 1;
+        box-sizing: border-box;
+      }
+
+      .card-container.transitioning {
+        z-index: 1000;
+        pointer-events: none;
+      }
+
+      .card-container.zoomed {
+        position: fixed;
+        z-index: 1001;
+      }
+
+      .placeholder {
+        visibility: hidden;
+        width: var(--card-width);
+        height: var(--card-height);
+      }
+
+      .card {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        border-radius: var(--card-border-radius);
+        background-color: var(--card-color);
+        box-shadow: 0 0 10px hsla(0, 0%, 0%, 0.3);
+        transform-style: preserve-3d;
+        transition: transform var(--transition-tilt);
+        overflow: hidden;
+      }
+
+      .card__image {
+        width: 100%;
+        height: 100%;
+        background-image: var(--card-image);
+        background-size: cover;
+      }
+
+      .masked {
+        width: 100%;
+        height: 100%;
+        mask-image: var(--card-mask);
+        -webkit-mask-image: var(--card-mask);
+        mask-size: cover;
+        -webkit-mask-size: cover;
+        mask-position: center;
+        -webkit-mask-position: center;
+      }
+
+      .card__glare {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: radial-gradient(
+          farthest-corner circle at var(--pointer-x) var(--pointer-y),
+          hsla(0, 0%, 90%, 1) 0%,
+          hsla(0, 0%, 40%, 0.5),
+          hsla(0, 0%, 0%, 0.25) 120%
+        );
+        filter: brightness(1) contrast(1);
+        mix-blend-mode: hard-light;
+        overflow: hidden;
+        opacity: calc(var(--opacity) * var(--pointer-from-center) * 0.85);
+      }
+
+      .style-1 {
+        --card-color: hsla(48, 100%, 70%, 1);
+        --card-glow: var(--card-color);
+        --card-image: url("images/cards/01/card.png");
+        --card-mask: url("images/cards/01/mask.webp");
+        --card-foil: url("images/cards/01/foil.webp");
+      }
+
+      .style-1 .card__shine {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        mix-blend-mode: color-dodge;
+        background-image: linear-gradient(
+            -45deg,
+            hsla(0, 57%, 37%, 1),
+            hsla(180, 60%, 35%, 1)
+          ),
+          var(--texture-glitter),
+          linear-gradient(
+            -30deg,
+            hsla(0, 57%, 37%, 1),
+            hsla(40, 53%, 39%, 1),
+            hsla(90, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(210, 57%, 39%, 1),
+            hsla(280, 55%, 31%, 1),
+            hsla(0, 57%, 37%, 1),
+            hsla(40, 53%, 39%, 1),
+            hsla(90, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(210, 57%, 39%, 1),
+            hsla(280, 55%, 31%, 1),
+            hsla(0, 57%, 37%, 1),
+            hsla(40, 53%, 39%, 1),
+            hsla(90, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(210, 57%, 39%, 1),
+            hsla(280, 55%, 31%, 1),
+            hsla(0, 57%, 37%, 1)
+          );
+        background-size: 200% 200%, 25% 25%, 400% 400%;
+        background-position: calc(25% + (50% * var(--pointer-from-left)))
+            calc(25% + (50% * var(--pointer-from-top))),
+          calc(50% - (2px * var(--pointer-from-left)) + 1px)
+            calc(50% - (2px * var(--pointer-from-top)) + 1px),
+          calc(25% + (var(--pointer-x) / 2)) calc(25% + (var(--pointer-y) / 2));
+        background-blend-mode: luminosity, soft-light;
+        filter: brightness(calc((var(--pointer-from-center) * 0.5) + 0.75))
+          contrast(2) saturate(1);
+        opacity: var(--opacity);
+      }
+
+      .style-1 .card__shine::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        mix-blend-mode: multiply;
+        background-image: var(--card-foil);
+        background-size: cover;
+        background-position: center center;
+        filter: brightness(2.5) contrast(1);
+        opacity: calc((var(--pointer-from-center) + 0.4) * 0.6);
+      }
+
+      .style-1 .card__shine::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        mix-blend-mode: exclusion;
+        background-image: var(--texture-glitter),
+          linear-gradient(
+            -60deg,
+            hsla(0, 57%, 37%, 1),
+            hsla(40, 53%, 39%, 1),
+            hsla(90, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(210, 57%, 39%, 1),
+            hsla(280, 55%, 31%, 1),
+            hsla(0, 57%, 37%, 1),
+            hsla(40, 53%, 39%, 1),
+            hsla(90, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(210, 57%, 39%, 1),
+            hsla(280, 55%, 31%, 1),
+            hsla(0, 57%, 37%, 1),
+            hsla(40, 53%, 39%, 1),
+            hsla(90, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(210, 57%, 39%, 1),
+            hsla(280, 55%, 31%, 1),
+            hsla(0, 57%, 37%, 1)
+          );
+        background-size: 25% 25%, 400% 400%;
+        background-position: calc(50% - (2px * var(--pointer-from-left)) - 1px)
+            calc(50% - (2px * var(--pointer-from-top)) - 1px),
+          var(--pointer-x) var(--pointer-y);
+        background-blend-mode: soft-light;
+        filter: brightness(calc((var(--pointer-from-center) * 0.35) + 0.35))
+          contrast(2) saturate(1);
+      }
+
+      .style-2 {
+        --card-color: hsla(0, 0%, 0%, 1);
+        --card-glow: var(--card-color);
+        --card-image: url("images/cards/02/card.png");
+        --card-mask: url("images/cards/02/mask.webp");
+        --card-foil: url("images/cards/02/foil.webp");
+      }
+
+      .style-2 .card__shine {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        mix-blend-mode: color-dodge;
+        background-image: var(--card-foil),
+          repeating-linear-gradient(
+            0deg,
+            hsla(283, 49%, 60%, 0.75) 5%,
+            hsla(2, 70%, 58%, 0.75) 10%,
+            hsla(53, 67%, 53%, 0.75) 15%,
+            hsla(93, 56%, 52%, 0.75) 20%,
+            hsla(176, 38%, 50%, 0.75) 25%,
+            hsla(228, 100%, 77%, 0.75) 30%,
+            hsla(283, 49%, 61%, 0.75) 35%
+          ),
+          repeating-linear-gradient(
+            133deg,
+            hsla(227, 53%, 12%, 1) 0%,
+            hsla(180, 10%, 60%, 1) 3.8%,
+            hsla(180, 29%, 66%, 1) 4.5%,
+            hsla(180, 10%, 60%, 1) 5.2%,
+            hsla(227, 53%, 12%, 1) 10%,
+            hsla(227, 53%, 12%, 1) 12%
+          ),
+          radial-gradient(
+            farthest-corner circle at var(--pointer-x) var(--pointer-y),
+            hsla(0, 0%, 0%, 0.1) 12%,
+            hsla(0, 0%, 0%, 0.15) 20%,
+            hsla(0, 0%, 0%, 0.25) 120%
+          );
+        background-size: cover, 200% 700%, 300% 100%, 200% 100%;
+        background-position: center center, 0% var(--background-y),
+          calc(var(--background-x) + (var(--background-y) * 0.2))
+            var(--background-y),
+          var(--background-x) var(--background-y);
+        background-blend-mode: soft-light, hue, hard-light;
+        filter: brightness(calc((var(--pointer-from-center) * 0.4) + 0.4))
+          contrast(1.4) saturate(2.25);
+        opacity: var(--opacity);
+      }
+
+      .style-2 .card__shine::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        mix-blend-mode: exclusion;
+        background-image: var(--card-foil),
+          repeating-linear-gradient(
+            0deg,
+            hsla(283, 49%, 60%, 0.75) 5%,
+            hsla(2, 70%, 58%, 0.75) 10%,
+            hsla(53, 67%, 53%, 0.75) 15%,
+            hsla(93, 56%, 52%, 0.75) 20%,
+            hsla(176, 38%, 50%, 0.75) 25%,
+            hsla(228, 100%, 77%, 0.75) 30%,
+            hsla(283, 49%, 61%, 0.75) 35%
+          ),
+          repeating-linear-gradient(
+            133deg,
+            hsla(227, 53%, 12%, 1) 0%,
+            hsla(180, 10%, 60%, 1) 3.8%,
+            hsla(180, 29%, 66%, 1) 4.5%,
+            hsla(180, 10%, 60%, 1) 5.2%,
+            hsla(227, 53%, 12%, 1) 10%,
+            hsla(227, 53%, 12%, 1) 12%
+          ),
+          radial-gradient(
+            farthest-corner circle at var(--pointer-x) var(--pointer-y),
+            hsla(0, 0%, 0%, 0.1) 12%,
+            hsla(0, 0%, 0%, 0.15) 20%,
+            hsla(0, 0%, 0%, 0.25) 120%
+          );
+        background-size: cover, 200% 400%, 195% 100%, 200% 100%;
+        background-position: center center, 0% var(--background-y),
+          calc((var(--background-x) + (var(--background-y) * 0.2)) * -1)
+            calc(var(--background-y) * -1),
+          var(--background-x) var(--background-y);
+        background-blend-mode: soft-light, hue, hard-light;
+        filter: brightness(calc((var(--pointer-from-center) * 0.4) + 0.8))
+          contrast(1.5) saturate(1.25);
+        opacity: var(--opacity);
+      }
+
+      .style-3 {
+        --card-color: hsla(334, 84%, 47%, 1);
+        --card-glow: var(--card-color);
+        --card-image: url("images/cards/03/card.png");
+        --card-mask: url("images/cards/03/mask.webp");
+        --card-foil: url("images/cards/03/foil.webp");
+      }
+
+      .style-3 .card__shine {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        mix-blend-mode: color-dodge;
+        background-image: repeating-linear-gradient(
+            133deg,
+            hsla(283, 49%, 60%, 0.75) 6%,
+            hsla(2, 70%, 58%, 0.75) 12%,
+            hsla(53, 67%, 53%, 0.75) 18%,
+            hsla(93, 56%, 52%, 0.75) 24%,
+            hsla(176, 38%, 50%, 0.75) 30%,
+            hsla(228, 100%, 77%, 0.75) 36%,
+            hsla(283, 49%, 61%, 0.75) 42%
+          ),
+          var(--texture-glitter),
+          linear-gradient(
+            -30deg,
+            hsla(0, 57%, 37%, 1),
+            hsla(40, 53%, 39%, 1),
+            hsla(90, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(210, 57%, 39%, 1),
+            hsla(280, 55%, 31%, 1),
+            hsla(0, 57%, 37%, 1),
+            hsla(40, 53%, 39%, 1),
+            hsla(90, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(210, 57%, 39%, 1),
+            hsla(280, 55%, 31%, 1),
+            hsla(0, 57%, 37%, 1),
+            hsla(40, 53%, 39%, 1),
+            hsla(90, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(210, 57%, 39%, 1),
+            hsla(280, 55%, 31%, 1),
+            hsla(0, 57%, 37%, 1)
+          );
+        background-size: 400% 300%, 25% 25%, 400% 400%;
+        background-position: 0% var(--background-y), center center,
+          calc(var(--background-x) * 1.5) calc(var(--background-y) * 1.5);
+        background-blend-mode: luminosity, overlay;
+        filter: brightness(calc((var(--pointer-from-center) * 0.3) + 0.3))
+          contrast(3) saturate(1.8);
+        opacity: var(--opacity);
+      }
+
+      .style-3 .card__shine::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        mix-blend-mode: color-dodge;
+        background-image: var(--card-foil);
+        background-size: cover;
+        background-position: center center;
+        background-blend-mode: difference;
+        filter: brightness(1.5) contrast(1.5);
+        opacity: calc((var(--pointer-from-center) + 0.6) * 0.4);
+      }
+
+      .style-3 .card__shine::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        mix-blend-mode: color-dodge;
+        background-image: var(--texture-glitter),
+          linear-gradient(
+            -60deg,
+            hsla(0, 57%, 37%, 1),
+            hsla(40, 53%, 39%, 1),
+            hsla(90, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(210, 57%, 39%, 1),
+            hsla(280, 55%, 31%, 1),
+            hsla(0, 57%, 37%, 1),
+            hsla(40, 53%, 39%, 1),
+            hsla(90, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(210, 57%, 39%, 1),
+            hsla(280, 55%, 31%, 1),
+            hsla(0, 57%, 37%, 1),
+            hsla(40, 53%, 39%, 1),
+            hsla(90, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(180, 60%, 35%, 1),
+            hsla(210, 57%, 39%, 1),
+            hsla(280, 55%, 31%, 1),
+            hsla(0, 57%, 37%, 1)
+          );
+        background-size: 25% 25%, 400% 400%;
+        background-position: center center,
+          calc(var(--background-x) * -1.5) calc(var(--background-y) * -1.5);
+        filter: brightness(calc((var(--pointer-from-center) * 0.5) + 0.6))
+          contrast(3) saturate(1);
+        opacity: calc(1.2 + (var(--pointer-from-center) / 2) * -1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="overlay"></div>
+
+    <div class="cards-wrapper">
+      <!--Duplicate-->
+      <div class="card-container">
+        <div class="card style-1">
+          <div class="card__image"></div>
+          <div class="card__shine masked"></div>
+          <div class="card__glare"></div>
+        </div>
+      </div>
+
+      <div class="card-container">
+        <div class="card style-2">
+          <div class="card__image"></div>
+          <div class="card__shine masked"></div>
+          <div class="card__glare"></div>
+        </div>
+      </div>
+
+      <div class="card-container">
+        <div class="card style-3">
+          <div class="card__image"></div>
+          <div class="card__shine masked"></div>
+          <div class="card__glare"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const containers = document.querySelectorAll(".card-container");
+      const overlay = document.querySelector(".overlay");
+      let zoomedCard = null;
+
+      function initializeCard(container) {
+        const card = container.querySelector(".card");
+        let isZoomed = false;
+        let isMouseOverCard = false;
+
+        const placeholder = document.createElement("div");
+        placeholder.className = "placeholder";
+        container.parentNode.insertBefore(placeholder, container);
+        placeholder.style.display = "none";
+
+        function updateCardProperties(x, y, rect) {
+          const normalizedX = Math.max(0, Math.min(1, x / rect.width));
+          const normalizedY = Math.max(0, Math.min(1, y / rect.height));
+
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          const distanceFromCenterX = Math.abs(x - centerX) / centerX;
+          const distanceFromCenterY = Math.abs(y - centerY) / centerY;
+          const distanceFromCenter = Math.min(
+            1,
+            Math.sqrt(
+              Math.pow(distanceFromCenterX, 2) +
+                Math.pow(distanceFromCenterY, 2)
+            )
+          );
+
+          const tiltX = normalizedY * 30 - 15;
+          const tiltY = -(normalizedX * 50 - 25);
+
+          const backgroundX = 37 + normalizedX * 26;
+          const backgroundY = 33 + normalizedY * 34;
+
+          container.style.setProperty("--pointer-x", `${normalizedX * 100}%`);
+          container.style.setProperty("--pointer-y", `${normalizedY * 100}%`);
+          container.style.setProperty(
+            "--pointer-from-center",
+            distanceFromCenter
+          );
+          container.style.setProperty("--pointer-from-left", normalizedX);
+          container.style.setProperty("--pointer-from-top", normalizedY);
+          container.style.setProperty("--rotate-x", `${tiltX}deg`);
+          container.style.setProperty("--rotate-y", `${tiltY}deg`);
+          container.style.setProperty("--background-x", `${backgroundX}%`);
+          container.style.setProperty("--background-y", `${backgroundY}%`);
+          container.style.setProperty("--opacity", "1");
+
+          return { tiltX, tiltY };
+        }
+
+        function resetCardPosition() {
+          container.style.setProperty("--pointer-x", "50%");
+          container.style.setProperty("--pointer-y", "50%");
+          container.style.setProperty("--pointer-from-center", "0");
+          container.style.setProperty("--pointer-from-left", "0.5");
+          container.style.setProperty("--pointer-from-top", "0.5");
+          container.style.setProperty("--rotate-x", "0deg");
+          container.style.setProperty("--rotate-y", "0deg");
+          container.style.setProperty("--background-x", "50%");
+          container.style.setProperty("--background-y", "50%");
+          container.style.setProperty("--opacity", "0");
+
+          card.style.transform = "rotateX(0) rotateY(0)";
+          isMouseOverCard = false;
+        }
+
+        function handleMouseMove(e) {
+          if ((isZoomed && container === zoomedCard) || !zoomedCard) {
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
+              resetCardPosition();
+              return;
+            }
+
+            const { tiltX, tiltY } = updateCardProperties(x, y, rect);
+
+            card.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+            isMouseOverCard = true;
+          }
+        }
+
+        function handleMouseLeave() {
+          resetCardPosition();
+        }
+
+        function zoomCard(container) {
+          container.classList.remove("transitioning");
+          const rect = container.getBoundingClientRect();
+          const scale = parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue(
+              "--scale-zoomed"
+            )
+          );
+
+          const viewportCenterX = window.innerWidth / 2;
+          const viewportCenterY = window.innerHeight / 2;
+
+          const translateX = viewportCenterX - (rect.left + rect.width / 2);
+          const translateY = viewportCenterY - (rect.top + rect.height / 2);
+
+          container.style.position = "fixed";
+          container.style.top = `${rect.top}px`;
+          container.style.left = `${rect.left}px`;
+          container.style.width = `${rect.width}px`;
+          container.style.height = `${rect.height}px`;
+          container.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+
+          overlay.style.display = "block";
+          placeholder.style.display = "block";
+          container.classList.add("zoomed");
+          zoomedCard = container;
+          isZoomed = true;
+
+          document.addEventListener("mousemove", handleMouseMove);
+          document.addEventListener("mouseleave", handleMouseLeave);
+        }
+
+        function unzoomCard(container) {
+          container.classList.add("transitioning");
+
+          overlay.style.display = "none";
+          container.classList.remove("zoomed");
+          container.style.position = "";
+          container.style.top = "";
+          container.style.left = "";
+          container.style.width = "";
+          container.style.height = "";
+          container.style.transform = "";
+          placeholder.style.display = "none";
+
+          function handleTransitionEnd(e) {
+            if (e.propertyName === "transform") {
+              container.classList.remove("transitioning");
+              container.removeEventListener(
+                "transitionend",
+                handleTransitionEnd
+              );
+            }
+          }
+
+          container.addEventListener("transitionend", handleTransitionEnd);
+
+          resetCardPosition();
+          zoomedCard = null;
+          isZoomed = false;
+
+          document.removeEventListener("mousemove", handleMouseMove);
+          document.removeEventListener("mouseleave", handleMouseLeave);
+        }
+
+        function handleClick() {
+          if (zoomedCard && zoomedCard !== container) {
+            const prevZoomedCard = zoomedCard;
+            unzoomCard(prevZoomedCard);
+          }
+
+          isZoomed = !isZoomed;
+
+          if (isZoomed) {
+            zoomCard(container);
+          } else {
+            unzoomCard(container);
+          }
+        }
+
+        container.addEventListener("mousemove", handleMouseMove);
+        container.addEventListener("mouseleave", handleMouseLeave);
+        container.addEventListener("click", handleClick);
+
+        overlay.addEventListener("click", () => {
+          if (isZoomed) {
+            unzoomCard(container);
+          }
+        });
+      }
+
+      containers.forEach(initializeCard);
+    </script>
+  </body>
+</html>
